@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>鳴潮 音該スコア計算機</title>
+    <style>
+        body {
+            font-family: "Helvetica Neue", Arial, sans-serif;
+            background-color: #1a1b20;
+            color: #e0e0e0;
+            display: flex;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background-color: #2c2e33;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+            max-width: 500px;
+            width: 100%;
+        }
+
+        h2 {
+            text-align: center;
+            color: #d4b106;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            font-size: 0.9em;
+        }
+
+        select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #444;
+            border-radius: 5px;
+            background-color: #1a1b20;
+            color: white;
+            font-size: 16px;
+            box-sizing: border-box;
+            cursor: pointer;
+        }
+
+        select:focus {
+            outline: none;
+            border-color: #d4b106;
+        }
+
+        /* カテゴリの文字色を白に変更 */
+        optgroup {
+            background-color: #3a3d42;
+            color: #ffffff;
+            font-weight: bold;
+            font-style: normal;
+        }
+
+        option {
+            background-color: #1a1b20;
+            color: white;
+        }
+
+        .result-box {
+            background-color: #121214;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            margin-top: 20px;
+            border: 1px solid #444;
+        }
+
+        .result-label {
+            font-size: 0.9em;
+            color: #888;
+        }
+
+        .score-value {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #d4b106;
+        }
+
+        .formula-info {
+            font-size: 0.8em;
+            color: #888;
+            margin-top: 10px;
+            text-align: center;
+            line-height: 1.4;
+        }
+
+        .btn-reset {
+            background-color: #444;
+            color: #ccc;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9em;
+            margin-top: 10px;
+            width: 100%;
+            transition: background 0.2s;
+        }
+
+        .btn-reset:hover {
+            background-color: #555;
+            color: #fff;
+        }
+
+        /* 固有値項目の強調 */
+        .highlight-label {
+            color: #55ffaa;
+        }
+
+        /* 特殊ステータス参照時の強調用 */
+        .text-hp {
+            color: #55ffaa !important;
+            /* HPは緑 */
+        }
+
+        .text-def {
+            color: #4da6ff !important;
+            /* 防御は青 */
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <h2>音該厳選スコア計算</h2>
+
+        <div class="form-group">
+            <label for="charSelect">キャラクター</label>
+            <select id="charSelect">
+                <option value="none">- （固有値なし）</option>
+
+                <optgroup label="【限定キャラクター】">
+                    <option value="jiyan">忌炎</option>
+                    <option value="jinhsi">今汐</option>
+                    <option value="changli">長離</option>
+                    <option value="xiangliyao">相里要</option>
+                    <option value="camellya">ツバキ</option>
+                    <option value="yinlin">インリン</option>
+                    <option value="zhezhi">折枝</option>
+                    <option value="carlotta">カルロッタ</option>
+                    <option value="rococo">ロココ</option>
+                    <option value="phoebe">フィービー</option>
+                    <option value="brant">ブラント</option>
+                    <option value="cantarella">カンタレラ</option>
+                    <option value="zanni">ザンニー</option>
+                    <option value="chaconne">シャコンヌ</option>
+                    <option value="cartesia">カルテジア</option>
+                    <option value="lupa">ルパ</option>
+                    <option value="phrolova">フローヴァ</option>
+                    <option value="augusta">オーガスタ</option>
+                    <option value="yuno">ユーノ</option>
+                    <option value="galbrena">ガルブレーナ</option>
+                    <option value="qiuyuan">仇遠</option>
+                    <option value="chisa">千咲</option>
+                </optgroup>
+
+                <optgroup label="【恒常・星4キャラクター】">
+                    <option value="calcharo">カカロ</option>
+                    <option value="encore">アンコ</option>
+                    <option value="lingyang">凌陽</option>
+                    <option value="rover_spectro">回折主</option>
+                    <option value="rover_havoc">消滅主</option>
+                    <option value="rover_aero">気動主</option>
+                    <option value="aalto">アールト</option>
+                    <option value="shika">シカ</option>
+                    <option value="danjin">タンキン</option>
+                    <option value="dengdeng">灯灯</option>
+                    <option value="mortefi">モルトフィー</option>
+                    <option value="sanhua">散華</option>
+                    <option value="taoqi">桃祈</option>
+                </optgroup>
+            </select>
+            <div id="charInfo" class="formula-info">固有値: なし</div>
+        </div>
+
+        <button class="btn-reset" onclick="resetForm()">数値をリセット</button>
+
+        <hr style="border-color: #444; margin: 20px 0;">
+
+        <div class="form-group">
+            <label>クリティカル率 (%)</label>
+            <select id="critRate"></select>
+        </div>
+
+        <div class="form-group">
+            <label>クリティカルダメージ (%)</label>
+            <select id="critDmg"></select>
+        </div>
+
+        <div class="form-group" id="group-atkPct">
+            <label id="labelAtkPct">攻撃力 (%)</label>
+            <select id="atkPct"></select>
+        </div>
+
+        <div class="form-group" id="group-atkFlat">
+            <label>攻撃力 (実数)</label>
+            <select id="atkFlat"></select>
+        </div>
+
+        <div class="form-group" id="group-basic" style="display:none;">
+            <label id="labelBasic" class="highlight-label">通常攻撃ダメージアップ (%)</label>
+            <select id="basicDmg"></select>
+        </div>
+
+        <div class="form-group" id="group-heavy" style="display:none;">
+            <label id="labelHeavy" class="highlight-label">重撃ダメージアップ (%)</label>
+            <select id="heavyDmg"></select>
+        </div>
+
+        <div class="form-group" id="group-skill" style="display:none;">
+            <label id="labelSkill" class="highlight-label">共鳴スキルダメージアップ (%)</label>
+            <select id="skillDmg"></select>
+        </div>
+
+        <div class="form-group" id="group-liberation" style="display:none;">
+            <label id="labelLiberation" class="highlight-label">共鳴開放ダメージアップ (%)</label>
+            <select id="liberationDmg"></select>
+        </div>
+
+        <div class="form-group" id="group-efficiency" style="display:none;">
+            <label id="labelEfficiency" class="highlight-label">共鳴効率 (%)</label>
+            <select id="efficiency"></select>
+        </div>
+
+        <div class="result-box">
+            <div class="result-label">総合スコア</div>
+            <div class="score-value" id="totalScore">0.0</div>
+        </div>
+    </div>
+
+    <script>
+        // ----------------------------------------------------
+        // 1. 設定データ (プルダウンの選択肢)
+        // ----------------------------------------------------
+        const optionsData = {
+            cr: [6.3, 6.9, 7.5, 8.1, 8.7, 9.3, 9.9, 10.5],
+            cd: [12.6, 13.6, 15.0, 16.2, 17.4, 18.6, 19.8, 21.0],
+            pct: [6.4, 7.1, 7.9, 8.6, 9.4, 10.1, 10.9, 11.6],
+            flat: [30, 40, 50, 60],
+            eff: [6.8, 7.6, 8.4, 9.2, 10.0, 10.8, 11.6, 12.4]
+        };
+
+        // ----------------------------------------------------
+        // 2. キャラクターデータ
+        // ----------------------------------------------------
+        const charData = {
+            'none': {
+                name: '汎用',
+                desc: '固有値なし',
+                visibleGroups: [],
+                calcSpecial: (vals) => 0
+            },
+            // --- 限定キャラクター ---
+            'jiyan': {
+                name: '忌炎',
+                desc: '固有値: 重撃 × 0.7',
+                visibleGroups: ['group-heavy'],
+                calcSpecial: (vals) => vals.heavy * 0.7
+            },
+            'jinhsi': {
+                name: '今汐',
+                desc: '固有値: スキル × 0.8',
+                visibleGroups: ['group-skill'],
+                calcSpecial: (vals) => vals.skill * 0.8
+            },
+            'changli': {
+                name: '長離',
+                desc: '固有値: スキル × 0.6',
+                visibleGroups: ['group-skill'],
+                calcSpecial: (vals) => vals.skill * 0.6
+            },
+            'xiangliyao': {
+                name: '相里要',
+                desc: '固有値: 解放 × 0.6',
+                visibleGroups: ['group-liberation'],
+                calcSpecial: (vals) => vals.liberation * 0.6
+            },
+            'camellya': {
+                name: 'ツバキ',
+                desc: '固有値: 通常 × 0.6',
+                visibleGroups: ['group-basic'],
+                calcSpecial: (vals) => vals.basic * 0.6
+            },
+            'yinlin': {
+                name: 'インリン',
+                desc: '固有値: スキル × 0.5',
+                visibleGroups: ['group-skill'],
+                calcSpecial: (vals) => vals.skill * 0.5
+            },
+            'zhezhi': {
+                name: '折枝',
+                desc: '固有値: 通常 × 0.8',
+                visibleGroups: ['group-basic'],
+                calcSpecial: (vals) => vals.basic * 0.8
+            },
+            'carlotta': {
+                name: 'カルロッタ',
+                desc: '固有値: スキル × 0.8',
+                visibleGroups: ['group-skill'],
+                calcSpecial: (vals) => vals.skill * 0.8
+            },
+            'rococo': {
+                name: 'ロココ',
+                desc: '固有値: 重撃 × 0.6',
+                visibleGroups: ['group-heavy'],
+                calcSpecial: (vals) => vals.heavy * 0.6
+            },
+            'phoebe': {
+                name: 'フィービー',
+                desc: '固有値: 重撃 × 0.4',
+                visibleGroups: ['group-heavy'],
+                calcSpecial: (vals) => vals.heavy * 0.4
+            },
+            'brant': {
+                name: 'ブラント',
+                desc: '固有値: 通常×0.7 + 効率(攻撃%の代わり)',
+                visibleGroups: ['group-basic', 'group-efficiency'],
+                calcSpecial: (vals) => vals.basic * 0.7,
+                customBase: (vals) => (vals.cr * 2) + vals.cd + vals.efficiency + (vals.atkFlat / 10)
+            },
+            'cantarella': {
+                name: 'カンタレラ',
+                desc: '固有値: 通常 × 0.7',
+                visibleGroups: ['group-basic'],
+                calcSpecial: (vals) => vals.basic * 0.7
+            },
+            'zanni': {
+                name: 'ザンニー',
+                desc: '固有値: 重撃 × 0.7',
+                visibleGroups: ['group-heavy'],
+                calcSpecial: (vals) => vals.heavy * 0.7
+            },
+            'chaconne': {
+                name: 'シャコンヌ',
+                desc: '固有値: 解放 × 0.3',
+                visibleGroups: ['group-liberation'],
+                calcSpecial: (vals) => vals.liberation * 0.3
+            },
+            'cartesia': {
+                name: 'カルテジア',
+                desc: '固有値: 解放×0.3 + 通常×0.3 (※HP参照 実数加算無し)',
+                visibleGroups: ['group-liberation', 'group-basic'],
+                calcSpecial: (vals) => (vals.liberation * 0.3) + (vals.basic * 0.3),
+                customBase: (vals) => (vals.cr * 2) + vals.cd + vals.atkPct,
+                customUI: {
+                    labelOverride: { text: 'HP (%)', class: 'text-hp' },
+                    hideAtkFlat: true
+                }
+            },
+            'lupa': {
+                name: 'ルパ',
+                desc: '固有値: 解放 × 0.7',
+                visibleGroups: ['group-liberation'],
+                calcSpecial: (vals) => vals.liberation * 0.7
+            },
+            'phrolova': {
+                name: 'フローヴァ',
+                desc: '固有値: スキル × 0.5',
+                visibleGroups: ['group-skill'],
+                calcSpecial: (vals) => vals.skill * 0.5
+            },
+            'augusta': {
+                name: 'オーガスタ',
+                desc: '固有値: 重撃 × 0.8',
+                visibleGroups: ['group-heavy'],
+                calcSpecial: (vals) => vals.heavy * 0.8
+            },
+            'yuno': {
+                name: 'ユーノ',
+                desc: '固有値: 解放 × 0.8',
+                visibleGroups: ['group-liberation'],
+                calcSpecial: (vals) => vals.liberation * 0.8
+            },
+            'galbrena': {
+                name: 'ガルブレーナ',
+                desc: '固有値: 重撃 × 0.3',
+                visibleGroups: ['group-heavy'],
+                calcSpecial: (vals) => vals.heavy * 0.3
+            },
+            'qiuyuan': {
+                name: '仇遠',
+                desc: '固有値: 重撃 × 0.6',
+                visibleGroups: ['group-heavy'],
+                calcSpecial: (vals) => vals.heavy * 0.6
+            },
+            'chisa': {
+                name: '千咲',
+                desc: '固有値: 解放 × 0.6',
+                visibleGroups: ['group-liberation'],
+                calcSpecial: (vals) => vals.liberation * 0.6
+            },
+            // --- 恒常・星4キャラクター ---
+            'calcharo': {
+                name: 'カカロ',
+                desc: '固有値: 解放 × 0.5',
+                visibleGroups: ['group-liberation'],
+                calcSpecial: (vals) => vals.liberation * 0.5
+            },
+            'encore': {
+                name: 'アンコ',
+                desc: '固有値: 通常 × 0.5',
+                visibleGroups: ['group-basic'],
+                calcSpecial: (vals) => vals.basic * 0.5
+            },
+            'lingyang': {
+                name: '凌陽',
+                desc: '固有値: 通常×0.3 + スキル×0.3',
+                visibleGroups: ['group-basic', 'group-skill'],
+                calcSpecial: (vals) => (vals.basic * 0.3) + (vals.skill * 0.3)
+            },
+            'rover_spectro': {
+                name: '回折主',
+                desc: '固有値: 解放×0.3 + スキル×0.4',
+                visibleGroups: ['group-liberation', 'group-skill'],
+                calcSpecial: (vals) => (vals.liberation * 0.3) + (vals.skill * 0.4)
+            },
+            'rover_havoc': {
+                name: '消滅主',
+                desc: '固有値: 通常×0.3 + 解放×0.3',
+                visibleGroups: ['group-basic', 'group-liberation'],
+                calcSpecial: (vals) => (vals.basic * 0.3) + (vals.liberation * 0.3)
+            },
+            'rover_aero': {
+                name: '気動主',
+                desc: '固有値: スキル × 0.7',
+                visibleGroups: ['group-skill'],
+                calcSpecial: (vals) => vals.skill * 0.7
+            },
+            'aalto': {
+                name: 'アールト',
+                desc: '固有値: 通常 × 0.4',
+                visibleGroups: ['group-basic'],
+                calcSpecial: (vals) => vals.basic * 0.4
+            },
+            'shika': {
+                name: 'シカ',
+                desc: '固有値: スキル×0.5 + 解放×0.3',
+                visibleGroups: ['group-skill', 'group-liberation'],
+                calcSpecial: (vals) => (vals.skill * 0.5) + (vals.liberation * 0.3)
+            },
+            'danjin': {
+                name: 'タンキン',
+                desc: '固有値: 重撃 × 0.4',
+                visibleGroups: ['group-heavy'],
+                calcSpecial: (vals) => vals.heavy * 0.4
+            },
+            'dengdeng': {
+                name: '灯灯',
+                desc: '固有値: 通常 × 0.4',
+                visibleGroups: ['group-basic'],
+                calcSpecial: (vals) => vals.basic * 0.4
+            },
+            'mortefi': {
+                name: 'モルトフィー',
+                desc: '固有値: 解放 × 0.6',
+                visibleGroups: ['group-liberation'],
+                calcSpecial: (vals) => vals.liberation * 0.6
+            },
+            'sanhua': {
+                name: '散華',
+                desc: '固有値: 解放×0.3 + スキル×0.3',
+                visibleGroups: ['group-liberation', 'group-skill'],
+                calcSpecial: (vals) => (vals.liberation * 0.3) + (vals.skill * 0.3)
+            },
+            'taoqi': {
+                name: '桃祈',
+                desc: '固有値: 解放 × 0.4 (防御参照)',
+                visibleGroups: ['group-liberation'],
+                calcSpecial: (vals) => vals.liberation * 0.4,
+                customBase: (vals) => (vals.cr * 2) + vals.cd + vals.atkPct,
+                customUI: {
+                    labelOverride: { text: '防御力 (%)', class: 'text-def' },
+                    hideAtkFlat: true
+                }
+            }
+        };
+
+        // ----------------------------------------------------
+        // 3. UI操作・計算ロジック
+        // ----------------------------------------------------
+
+        const inputMap = {
+            'critRate': 'cr',
+            'critDmg': 'cd',
+            'atkPct': 'atkPct',
+            'atkFlat': 'atkFlat',
+            'basicDmg': 'basic',
+            'heavyDmg': 'heavy',
+            'skillDmg': 'skill',
+            'liberationDmg': 'liberation',
+            'efficiency': 'efficiency'
+        };
+
+        const specialGroupIds = [
+            'group-basic', 'group-heavy', 'group-skill',
+            'group-liberation', 'group-efficiency'
+        ];
+
+        const charSelect = document.getElementById('charSelect');
+        const scoreDisplay = document.getElementById('totalScore');
+        const charInfo = document.getElementById('charInfo');
+        const labelAtkPct = document.getElementById('labelAtkPct');
+        const groupAtkFlat = document.getElementById('group-atkFlat');
+
+        // Select要素にオプションを追加する関数（小数点対応版）
+        // forceDecimal: trueの場合、整数でも".0"を付けて表示する
+        function populateSelect(elementId, values, forceDecimal = false) {
+            const select = document.getElementById(elementId);
+            const defaultOption = document.createElement('option');
+            defaultOption.value = 0;
+            defaultOption.text = "-";
+            select.appendChild(defaultOption);
+
+            values.forEach(val => {
+                const option = document.createElement('option');
+                option.value = val;
+                // forceDecimalがtrueなら toFixed(1) で文字列化
+                option.text = forceDecimal ? val.toFixed(1) : val;
+                select.appendChild(option);
+            });
+        }
+
+        // 初期化処理
+        window.onload = function () {
+            // 第3引数 true で強制的に小数表示
+            populateSelect('critRate', optionsData.cr, true);
+            populateSelect('critDmg', optionsData.cd, true); // ここで 15 -> 15.0, 21 -> 21.0 になる
+            populateSelect('atkPct', optionsData.pct, true);
+
+            // 攻撃実数は整数のままで良いので false
+            populateSelect('atkFlat', optionsData.flat, false);
+
+            // 他の%系ステータスも小数表示
+            populateSelect('basicDmg', optionsData.pct, true);
+            populateSelect('heavyDmg', optionsData.pct, true);
+            populateSelect('skillDmg', optionsData.pct, true);
+            populateSelect('liberationDmg', optionsData.pct, true);
+            populateSelect('efficiency', optionsData.eff, true);
+
+            // イベントリスナーの一括登録
+            Object.keys(inputMap).forEach(id => {
+                document.getElementById(id).addEventListener('change', calculate);
+            });
+
+            charSelect.addEventListener('change', updateUI);
+
+            // UI初期状態設定
+            updateUI();
+        };
+
+        // 計算実行
+        function calculate() {
+            // 値の収集
+            const val = {};
+            Object.keys(inputMap).forEach(htmlId => {
+                const key = inputMap[htmlId];
+                const element = document.getElementById(htmlId);
+                val[key] = parseFloat(element.value) || 0;
+            });
+
+            const selectedChar = charSelect.value;
+            const charConfig = charData[selectedChar];
+
+            if (!charConfig) return;
+
+            // スコア計算
+            let baseScore;
+            if (charConfig.customBase) {
+                baseScore = charConfig.customBase(val);
+            } else {
+                // デフォルト: クリ率*2 + クリダメ + 攻撃% + 実数/10
+                baseScore = (val.cr * 2) + val.cd + val.atkPct + (val.atkFlat / 10);
+            }
+
+            const specialScore = charConfig.calcSpecial(val);
+            const total = baseScore + specialScore;
+
+            scoreDisplay.textContent = total.toFixed(1);
+        }
+
+        // UI更新
+        function updateUI() {
+            const selectedChar = charSelect.value;
+            const config = charData[selectedChar];
+
+            if (!config) return;
+
+            charInfo.textContent = config.desc;
+
+            // 1. 固有値グループの表示制御
+            specialGroupIds.forEach(id => {
+                document.getElementById(id).style.display = 'none';
+            });
+
+            if (config.visibleGroups) {
+                config.visibleGroups.forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el) el.style.display = 'block';
+                });
+            }
+
+            // 2. 特殊表示処理 (customUI設定に基づく)
+            // まずデフォルトに戻す
+            labelAtkPct.textContent = "攻撃力 (%)";
+            labelAtkPct.classList.remove('text-hp', 'text-def');
+            groupAtkFlat.style.display = 'block';
+
+            if (config.customUI) {
+                // ラベルの上書き (HPや防御など)
+                if (config.customUI.labelOverride) {
+                    labelAtkPct.textContent = config.customUI.labelOverride.text;
+                    labelAtkPct.classList.add(config.customUI.labelOverride.class);
+                }
+                // 攻撃実数の非表示
+                if (config.customUI.hideAtkFlat) {
+                    groupAtkFlat.style.display = 'none';
+                }
+            }
+
+            calculate();
+        }
+
+        function resetForm() {
+            Object.keys(inputMap).forEach(id => {
+                document.getElementById(id).value = 0;
+            });
+            calculate();
+        }
+
+    </script>
+
+</body>
+
+</html>
