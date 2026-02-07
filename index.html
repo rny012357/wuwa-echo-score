@@ -160,7 +160,7 @@
                     <option value="cantarella">カンタレラ</option>
                     <option value="zanni">ザンニー</option>
                     <option value="chaconne">シャコンヌ</option>
-                    <option value="cartesia">カルテジア</option>
+                    <option value="cartethyia">カルテジア</option>
                     <option value="lupa">ルパ</option>
                     <option value="phrolova">フローヴァ</option>
                     <option value="augusta">オーガスタ</option>
@@ -168,6 +168,9 @@
                     <option value="galbrena">ガルブレーナ</option>
                     <option value="qiuyuan">仇遠</option>
                     <option value="chisa">千咲</option>
+                    <option value="lynae">リンネー</option>
+                    <option value="mornye">モーニエ</option>
+                    <option value="aemeath">エイメス</option>
                 </optgroup>
 
                 <optgroup label="【恒常・星4キャラクター】">
@@ -352,7 +355,7 @@
                 visibleGroups: ['group-liberation'],
                 calcSpecial: (vals) => vals.liberation * 0.3
             },
-            'cartesia': {
+            'cartethyia': {
                 name: 'カルテジア',
                 desc: '固有値: 解放×0.3 + 通常×0.3 (※HP参照 実数加算無し)',
                 visibleGroups: ['group-liberation', 'group-basic'],
@@ -401,6 +404,37 @@
             },
             'chisa': {
                 name: '千咲',
+                desc: '固有値: 解放 × 0.6',
+                visibleGroups: ['group-liberation'],
+                calcSpecial: (vals) => vals.liberation * 0.6
+            },
+            'lynae': {
+                name: 'リンネー',
+                desc: '固有値: 通常 × 0.7',
+                visibleGroups: ['group-basic'],
+                calcSpecial: (vals) => vals.basic * 0.7
+            },
+            'mornye': {
+                name: 'モーニエ',
+                desc: '計算式: クリ率 + クリダメ/2 + 防御%/2 + 解放',
+                // 共鳴解放ダメージの入力欄を表示
+                visibleGroups: ['group-liberation'],
+
+                // 式の「+ 解放ダメ」部分
+                calcSpecial: (vals) => vals.liberation,
+
+                // 式の「クリティカル + クリダメ/2 + 防御(%)/2」部分
+                // ※ atkPct(攻撃%)の数値を防御%として計算に使用します
+                customBase: (vals) => vals.cr + (vals.cd / 2) + (vals.atkPct / 2),
+
+                // UIを防御力用に書き換え、不要な実数攻撃力を隠す設定
+                customUI: {
+                    labelOverride: { text: '防御力 (%)', class: 'text-def' },
+                    hideAtkFlat: true
+                }
+            },
+            'aemeath': {
+                name: 'エイメス',
                 desc: '固有値: 解放 × 0.6',
                 visibleGroups: ['group-liberation'],
                 calcSpecial: (vals) => vals.liberation * 0.6
